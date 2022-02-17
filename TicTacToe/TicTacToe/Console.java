@@ -1,7 +1,12 @@
 package TicTacToe;
 
 import ArtificialIntelligence.Algorithms;
+import org.eclipse.paho.client.mqttv3.*;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -16,7 +21,7 @@ public class Console {
      * Construct Console.
      */
     private Console() {
-        board = new Board();
+       board = new Board();
     }
 
     /**
@@ -28,7 +33,6 @@ public class Console {
 
         while (true) {
             printGameStatus();
-            playMove();
 
             if (board.isGameOver()) {
                 printWinner();
@@ -42,14 +46,14 @@ public class Console {
 
     /**
      * Handle the move to be played, either by the player or the AI.
-     */
+
     private void playMove () {
         if (board.getTurn() == Board.State.X) {
             getPlayerMove();
         } else {
             Algorithms.alphaBetaAdvanced(board);
         }
-    }
+    } */
 
     /**
      * Print out the board and the player who's turn it is.
@@ -62,10 +66,7 @@ public class Console {
     /**
      * For reading in and interpreting the move that the user types into the console.
      */
-    private void getPlayerMove () {
-        System.out.print("Index of move: ");
-
-        int move = sc.nextInt();
+    private void getPlayerMove (int move) {
 
         if (move < 0 || move >= Board.BOARD_WIDTH* Board.BOARD_WIDTH) {
             System.out.println("\nInvalid move.");
@@ -126,7 +127,89 @@ public class Console {
 
     public static void main(String[] args) {
         Console ticTacToe = new Console();
-        ticTacToe.play();
+        try {
+            int qos = 1;
+            //CONNESSINE AL BROKER
+            String broker = "tcp://localhost:1883";
+            String PubId = "127.0.0.1";
+
+            MemoryPersistence persistence = new MemoryPersistence();
+            MqttClient sampleClient = new MqttClient(broker, PubId, persistence);
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+            connOpts.setConnectionTimeout(60);
+            connOpts.setKeepAliveInterval(60);
+            connOpts.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+            connOpts.setUserName("mqtt");
+            connOpts.setPassword("test".toCharArray());
+            System.out.println("Connecting to broker: " + broker);
+
+            sampleClient.setCallback(new MqttCallback() {
+                public void connectionLost(Throwable cause) {}
+
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    //System.out.println(topic + " says: \n" + message.toString());
+                    String msg = message.toString();
+                    JSONParser parser = new JSONParser();
+                    JSONObject json = (JSONObject) parser.parse(msg);
+
+
+                    if(!Objects.isNull(json.get("move"))){
+
+                        String moveStr = json.get("move").toString() ;
+                        int move = Integer.parseInt(moveStr) - 1;
+
+
+                        if (move < 0 || move >= Board.BOARD_WIDTH* Board.BOARD_WIDTH) {
+                            System.out.println("\nInvalid move.");
+                            System.out.println("\nThe index of the move must be between 0 and "
+                                    + (Board.BOARD_WIDTH * Board.BOARD_WIDTH - 1) + ", inclusive.");
+                        } else if (!ticTacToe.board.move(move)) {
+                            System.out.println("\nInvalid move.");
+                            System.out.println("\nThe selected index must be blank.");
+                        }else{
+                            System.out.println("\n" + ticTacToe.board + "\n");
+                            Algorithms.alphaBetaAdvanced(ticTacToe.board);
+                            System.out.println("\n" + ticTacToe.board + "\n");
+                        }
+
+
+
+
+                    }else{
+                        System.out.println("Nulla casso");
+                    }
+                }
+                public void deliveryComplete(IMqttDeliveryToken token) {}
+            });
+
+
+            sampleClient.connect(connOpts);
+            sampleClient.subscribe("dalterio.dario@einaudicorreggio.it/1"); //STANZA 1, DA CAMBIARE DINAMICAMENTE
+            sampleClient.subscribe("broadcast");
+
+            System.out.println("Connected");
+
+
+            String topic = "online/dalterio.dario@einaudicorreggio.it";
+            String msg = "True";
+            MqttMessage message = new MqttMessage(msg.getBytes());
+            message.setQos(qos);
+            sampleClient.publish(topic, message);
+            System.out.println("Message published");
+
+        }catch(MqttException me) {
+            System.out.println("Reason :"+ me.getReasonCode());
+            System.out.println("Message :"+ me.getMessage());
+            System.out.println("Local :"+ me.getLocalizedMessage());
+            System.out.println("Cause :"+ me.getCause());
+            System.out.println("Exception :"+ me);
+            me.printStackTrace();
+        }
+
+
+
+        //ticTacToe.play();
     }
 
 }

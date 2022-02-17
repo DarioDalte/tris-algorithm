@@ -55,6 +55,7 @@ class AlphaBetaAdvanced {
         }
 
         if (board.getTurn() == player) {
+
             return getMax(player, board, alpha, beta, currentPly);
         } else {
             return getMin(player, board, alpha, beta, currentPly);
@@ -91,7 +92,10 @@ class AlphaBetaAdvanced {
 
         if (indexOfBestMove != -1) {
             board.move(indexOfBestMove);
+
+
         }
+
         return (int)alpha;
     }
 
@@ -126,7 +130,9 @@ class AlphaBetaAdvanced {
 
         if (indexOfBestMove != -1) {
             board.move(indexOfBestMove);
+
         }
+
         return (int)beta;
     }
 

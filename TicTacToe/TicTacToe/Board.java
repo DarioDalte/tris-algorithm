@@ -51,7 +51,7 @@ public class Board {
     void reset () {
         moveCount = 0;
         gameOver = false;
-        playersTurn = State.X;
+        playersTurn = State.O; //CHI INIZIA
         winner = State.Blank;
         initialize();
     }
@@ -62,6 +62,7 @@ public class Board {
      * @return          true if the move has not already been played
      */
     public boolean move (int index) {
+
         return move(index% BOARD_WIDTH, index/ BOARD_WIDTH);
     }
 
@@ -77,9 +78,12 @@ public class Board {
             throw new IllegalStateException("TicTacToe is over. No moves can be played.");
         }
 
+
         if (board[y][x] == State.Blank) {
+
             board[y][x] = playersTurn;
         } else {
+
             return false;
         }
 
