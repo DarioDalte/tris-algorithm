@@ -14,6 +14,8 @@ public class Board {
     private State playersTurn;
     private State winner;
     private HashSet<Integer> movesAvailable;
+    static public  int columnSelected;
+    static public int rowSelected;
 
     private int moveCount;
     private boolean gameOver;
@@ -51,7 +53,8 @@ public class Board {
     void reset () {
         moveCount = 0;
         gameOver = false;
-        playersTurn = State.O; //CHI INIZIA
+
+        playersTurn = State.X;
         winner = State.Blank;
         initialize();
     }
@@ -73,6 +76,7 @@ public class Board {
      * @return          true if the move has not already been played
      */
     private boolean move (int x, int y) {
+
 
         if (gameOver) {
             throw new IllegalStateException("TicTacToe is over. No moves can be played.");
@@ -154,8 +158,10 @@ public class Board {
      * @param row       the row to check
      */
     private void checkRow (int row) {
+        rowSelected = row;
         for (int i = 1; i < BOARD_WIDTH; i++) {
             if (board[row][i] != board[row][i-1]) {
+               // System.out.println(row);
                 break;
             }
             if (i == BOARD_WIDTH -1) {
@@ -170,8 +176,10 @@ public class Board {
      * @param column    the column to check
      */
     private void checkColumn (int column) {
+        columnSelected = column;
         for (int i = 1; i < BOARD_WIDTH; i++) {
             if (board[i][column] != board[i-1][column]) {
+                //System.out.println(column);
                 break;
             }
             if (i == BOARD_WIDTH -1) {
@@ -187,6 +195,7 @@ public class Board {
      * @param y         the y coordinate of the most recently played move
      */
     private void checkDiagonalFromTopLeft (int x, int y) {
+
         if (x == y) {
             for (int i = 1; i < BOARD_WIDTH; i++) {
                 if (board[i][i] != board[i-1][i-1]) {

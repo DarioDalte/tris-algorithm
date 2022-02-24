@@ -96,7 +96,9 @@ class AlphaBetaAdvanced {
 
         }
 
+
         return (int)alpha;
+
     }
 
     /**
@@ -121,6 +123,7 @@ class AlphaBetaAdvanced {
             if (score < beta) {
                 beta = score;
                 indexOfBestMove = theMove;
+
             }
 
             if (alpha >= beta) {
@@ -130,6 +133,7 @@ class AlphaBetaAdvanced {
 
         if (indexOfBestMove != -1) {
             board.move(indexOfBestMove);
+
 
         }
 

@@ -12,6 +12,9 @@ public class MQTTPubPrint {
 
 
     public static void main(String[] args) {
+
+        //EMAIL trisser.bot2@gmail.com
+        //PASSWORD trisserbot2!
         try {
             int qos = 1;
             String broker = "tcp://localhost:1883";
@@ -28,13 +31,14 @@ public class MQTTPubPrint {
             connOpts.setPassword("test".toCharArray());
             System.out.println("Connecting to broker: " + broker);
 
+
+
             sampleClient.setCallback(new MqttCallback() {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
 
-
-                    //System.out.println(topic + " says: \n" + message.toString());
+                    System.out.println(topic + " says: \n" + message.toString());
                     String msg = message.toString();
                     JSONParser parser = new JSONParser();
                     JSONObject json = (JSONObject) parser.parse(msg);
@@ -44,14 +48,10 @@ public class MQTTPubPrint {
                     }else{
                         System.out.println("Nulla casso");
                     }
-
-
-
                 }
 
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
-
 
             sampleClient.connect(connOpts);
             sampleClient.subscribe("dalterio.dario@einaudicorreggio.it/1"); //STANZA 1, DA CAMBIARE DINAMICAMENTE
@@ -66,6 +66,7 @@ public class MQTTPubPrint {
             message.setQos(qos);
             sampleClient.publish(topic, message);
             System.out.println("Message published");
+
 
         }catch(MqttException me) {
             System.out.println("Reason :"+ me.getReasonCode());
