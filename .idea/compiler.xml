@@ -6,11 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="trisser-bot" />
         <module name="Tic-Tac-Toe-master" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Tic-Tac-Toe-master" target="15" />
+      <module name="trisser-bot" target="15" />
     </bytecodeTargetLevel>
   </component>
 </project>
