@@ -161,7 +161,7 @@ public class Board {
         rowSelected = row;
         for (int i = 1; i < BOARD_WIDTH; i++) {
             if (board[row][i] != board[row][i-1]) {
-               // System.out.println(row);
+                // System.out.println(row);
                 break;
             }
             if (i == BOARD_WIDTH -1) {
