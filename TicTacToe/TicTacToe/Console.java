@@ -33,6 +33,10 @@ public class Console {
     public Console(int instance, MqttClient sampleClient, String room, boolean myTurn, String enemy) {
         board = new Board();
 
+        System.out.println(room + "/" + instance + "/" + "trisser.bot2@gmail.com");
+
+
+
 
        //Console ticTacToe = this;
 

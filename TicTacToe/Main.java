@@ -67,7 +67,6 @@ public class Main extends Thread {
     @Override
     public void run() {
         new Console(game, sampleClient, room, myTurn, enemy);
-
     }
 
 
@@ -137,7 +136,7 @@ public class Main extends Thread {
             int qos = 0;
             //CONNESSINE AL BROKER
             String broker = "tcp://localhost:1883";
-            String PubId = "127.0.0.1";
+            String PubId = "130.0.0.1";
 
             MemoryPersistence persistence = new MemoryPersistence();
             MqttClient sampleClient = new MqttClient(broker, PubId, persistence);
