@@ -20,18 +20,22 @@ import java.util.Scanner;
  */
 public class Console {
 
-     private Board board;
 
-
-
-
-
+    public Algorithms test;
 
     /**
      * Construct Console.
      */
     public Console(int instance, MqttClient sampleClient, String room, boolean myTurn, String enemy) {
-        board = new Board();
+        Board board = new Board();
+
+;
+        test = new Algorithms();
+
+        //String topic2 = room + "/" + instance + "/" + enemy;
+        //System.out.println(topic2);
+
+
 
 
        //Console ticTacToe = this;
@@ -57,7 +61,7 @@ public class Console {
                     }
 
                     if(!Objects.isNull(json.get("game"))){
-                        if(json.get("game").equals("Start")){
+                        if(json.get("game").equals("start")){
 
                             if(myTurn){
                                 int AIMove = makeMove(board);
@@ -81,7 +85,7 @@ public class Console {
                         int move = Integer.parseInt(moveStr) - 1;
 
 
-
+                        System.out.println(board);
                         if (move < 0 || move >= board.BOARD_WIDTH* board.BOARD_WIDTH) {
                             System.out.println("\nInvalid move.");
                             System.out.println("\nThe index of the move must be between 0 and "
@@ -102,6 +106,8 @@ public class Console {
                             message = new MqttMessage(json.toString().getBytes());
                             topic = room + "/" + instance + "/" + "trisser.bot2@gmail.com";
                             sampleClient.publish(topic, message);
+
+
 
 
                         }
@@ -181,7 +187,9 @@ public class Console {
     public int makeMove(Board board){
 
 
-        Algorithms.alphaBetaAdvanced(board);
+
+        System.out.println("test board: \n" + board);
+        test.alphaBetaAdvanced(board);
         System.out.println("\n" + board + "\n");
         int AIMove;
 

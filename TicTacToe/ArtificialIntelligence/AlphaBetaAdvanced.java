@@ -17,12 +17,12 @@ import TicTacToe.Board;
  */
 class AlphaBetaAdvanced {
 
-    private static double maxPly;
+    public  double maxPly;
 
     /**
      * AlphaBetaAdvanced cannot be instantiated.
      */
-    private AlphaBetaAdvanced() {}
+    public AlphaBetaAdvanced() {}
 
     /**
      * Execute the algorithm.
@@ -30,13 +30,14 @@ class AlphaBetaAdvanced {
      * @param board         the Tic Tac Toe board to play on
      * @param maxPly        the maximum depth
      */
-    static void run (Board.State player, Board board, double maxPly) {
+     public void run (Board.State player, Board board, double maxPly) {
 
         if (maxPly < 1) {
             throw new IllegalArgumentException("Maximum depth must be greater than 0.");
         }
 
-        AlphaBetaAdvanced.maxPly = maxPly;
+        this.maxPly = maxPly;
+
         alphaBetaPruning(player, board, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 0);
     }
 
@@ -49,7 +50,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private static int alphaBetaPruning (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    private int alphaBetaPruning (Board.State player, Board board, double alpha, double beta, int currentPly) {
         if (currentPly++ == maxPly || board.isGameOver()) {
             return score(player, board, currentPly);
         }
@@ -71,7 +72,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private static int getMax (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    private int getMax (Board.State player, Board board, double alpha, double beta, int currentPly) {
         int indexOfBestMove = -1;
 
         for (Integer theMove : board.getAvailableMoves()) {
@@ -110,7 +111,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private static int getMin (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    private int getMin (Board.State player, Board board, double alpha, double beta, int currentPly) {
         int indexOfBestMove = -1;
 
         for (Integer theMove : board.getAvailableMoves()) {
@@ -147,7 +148,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private static int score (Board.State player, Board board, int currentPly) {
+    private int score (Board.State player, Board board, int currentPly) {
 
         if (player == Board.State.Blank) {
             throw new IllegalArgumentException("Player must be X or O.");

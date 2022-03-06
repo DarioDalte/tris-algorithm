@@ -102,7 +102,7 @@ public class Main extends Thread {
         inbox.open(Folder.READ_WRITE);
 
         // retrieve the messages from the folder in an array and print it
-        Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+        Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
 
         int i = 0;
         Message message = messages[i];
@@ -110,6 +110,8 @@ public class Main extends Thread {
         String result = getTextFromMessage(message);
         JSONParser parser = new JSONParser();
         JSONObject json = (JSONObject) parser.parse(result);
+
+            //System.out.println(result);
 
         //Prendo dall'email il numero di partite che bisogna giocare
         games = Integer.parseInt(json.get("room_instance").toString());
@@ -171,13 +173,13 @@ public class Main extends Thread {
                 room1Enemy = partsRoom1[1];
                 room1 = true;
             }
-            String[] partsRoom2 = rooms.get(1).split("_");
-
-            room2Enemy = partsRoom2[0];
-            if(partsRoom2[0].equals("trisser.bot2@gmail.com")){
-                room2Enemy = partsRoom2[1];
-                room2 = true;
-            }
+//            String[] partsRoom2 = rooms.get(1).split("_");
+//
+//            room2Enemy = partsRoom2[0];
+//            if(partsRoom2[0].equals("trisser.bot2@gmail.com")){
+//                room2Enemy = partsRoom2[1];
+//                room2 = true;
+//            }
 
 
             //Lancio i thread

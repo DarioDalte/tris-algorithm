@@ -7,15 +7,15 @@ import java.util.HashSet;
  */
 public class Board {
 
-    static final int BOARD_WIDTH = 3;
+    final int BOARD_WIDTH = 3;
 
     public enum State {Blank, X, O}
     private State[][] board;
     private State playersTurn;
     private State winner;
     private HashSet<Integer> movesAvailable;
-    static public  int columnSelected;
-    static public int rowSelected;
+    public  int columnSelected;
+    public int rowSelected;
 
     private int moveCount;
     private boolean gameOver;

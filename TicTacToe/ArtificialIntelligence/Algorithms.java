@@ -1,16 +1,21 @@
 package ArtificialIntelligence;
 
 import TicTacToe.Board;
-
 /**
  * Uses various algorithms to play Tic Tac Toe.
  */
 public class Algorithms {
 
+
+    public AlphaBetaAdvanced test2;
+
     /**
      * Algorithms cannot be instantiated.
      */
-    private Algorithms() {}
+    public Algorithms() {
+
+        test2 = new AlphaBetaAdvanced();
+    }
 
     /**
      * Play a random move.
@@ -21,7 +26,7 @@ public class Algorithms {
      * Play using the MiniMax Algorithm.
      * @param board     the Tic Tac Toe board to play on
      */
-    public static void miniMax (Board board) {
+    public  void miniMax (Board board) {
         MiniMax.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
     }
 
@@ -30,7 +35,7 @@ public class Algorithms {
      * @param board     the Tic Tac Toe board to play on
      * @param ply       the maximum depth
      */
-    public static void miniMax (Board board, int ply) {
+    public  void miniMax (Board board, int ply) {
         MiniMax.run(board.getTurn(), board, ply);
     }
 
@@ -38,7 +43,7 @@ public class Algorithms {
      * Play using the Alpha-Beta Pruning algorithm.
      * @param board     the Tic Tac Toe board to play on
      */
-    public static void alphaBetaPruning (Board board) {
+    public  void alphaBetaPruning (Board board) {
         AlphaBetaPruning.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
     }
 
@@ -47,7 +52,7 @@ public class Algorithms {
      * @param board     the Tic Tac Toe board to play on
      * @param ply       the maximum depth
      */
-    public static void alphaBetaPruning (Board board, int ply) {
+    public  void alphaBetaPruning (Board board, int ply) {
         AlphaBetaPruning.run(board.getTurn(), board, ply);
     }
 
@@ -56,8 +61,8 @@ public class Algorithms {
      * evaluation function.
      * @param board     the Tic Tac Toe board to play on
      */
-    public static void alphaBetaAdvanced (Board board) {
-        AlphaBetaAdvanced.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
+    public void alphaBetaAdvanced (Board board) {
+        test2.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
     }
 
     /**
@@ -66,8 +71,8 @@ public class Algorithms {
      * @param board     the Tic Tac Toe board to play on
      * @param ply       the maximum depth
      */
-    public static void alphaBetaAdvanced (Board board, int ply) {
-        AlphaBetaAdvanced.run(board.getTurn(), board, ply);
+    public  void alphaBetaAdvanced (Board board, int ply) {
+        test2.run(board.getTurn(), board, ply);
     }
 
 }
