@@ -9,6 +9,7 @@ import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 
@@ -120,6 +121,7 @@ public class Main extends Thread {
         //Prendo dall'email l'username e la password per conenttermi al broker
         userName = json.get("user").toString();
         pwd = json.get("pwd").toString();
+
 
         //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
         ArrayList<String> rooms = (ArrayList<String>) json.get("rooms");

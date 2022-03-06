@@ -22,6 +22,7 @@ public class Console {
 
 
     public Algorithms test;
+    public String myName = "trisser.bot2@gmail.com";
 
     /**
      * Construct Console.
@@ -71,7 +72,7 @@ public class Console {
                                 json3.put("move", AIMove);
 
                                 message = new MqttMessage(json3.toString().getBytes());
-                                topic = room + "/" + instance + "/" + "trisser.bot2@gmail.com";
+                                topic = room + "/" + instance + "/" + myName;
 
                                 sampleClient.publish(topic, message);
                             }
@@ -104,7 +105,7 @@ public class Console {
                             json.put("move", AIMove);
 
                             message = new MqttMessage(json.toString().getBytes());
-                            topic = room + "/" + instance + "/" + "trisser.bot2@gmail.com";
+                            topic = room + "/" + instance + "/" + myName;
                             sampleClient.publish(topic, message);
 
 
@@ -134,9 +135,9 @@ public class Console {
 
             //Dico al server che sono online
             JSONObject json2 = new JSONObject();
-            json2.put("trisser.bot2@gmail.com", "true");
+            json2.put(myName, "true");
 
-            topic = "online/trisser.bot2@gmail.com";
+            topic = "online/" + myName;
             MqttMessage message = new MqttMessage(json2.toString().getBytes());
             sampleClient.publish(topic, message);
 
