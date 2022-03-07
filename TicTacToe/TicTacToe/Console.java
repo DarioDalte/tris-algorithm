@@ -1,6 +1,6 @@
 package TicTacToe;
 
-import ArtificialIntelligence.Algorithms;
+
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
@@ -20,36 +20,54 @@ import java.util.Scanner;
  */
 public class Console {
 
-
-    public Algorithms test;
     public String myName = "trisser.bot2@gmail.com";
 
     /**
      * Construct Console.
      */
-    public Console(int instance, MqttClient sampleClient, String room, boolean myTurn, String enemy) {
+    public Console(int instance, String room, boolean myTurn, String enemy) {
         Board board = new Board();
+        System.out.println("istanza " + instance);
+        System.out.println("room " + room);
+        System.out.println("enemy " + enemy);
+        System.out.println("my turn " + myTurn);
 
-;
-        test = new Algorithms();
+
+
+        AlphaBetaAdvanced test = new AlphaBetaAdvanced();
+
 
         //String topic2 = room + "/" + instance + "/" + enemy;
         //System.out.println(topic2);
 
 
-
-
-       //Console ticTacToe = this;
-
-
         try {
+            String broker = "tcp://localhost:1883";
 
-            //Console ticTacToe = new Console();
+            String PubId = "134.0.0." + (instance +1);
+            System.out.println(PubId);
+
+            MemoryPersistence persistence = new MemoryPersistence();
+            MqttClient sampleClient = new MqttClient(broker, PubId, persistence);
+            MqttConnectOptions connOpts = new MqttConnectOptions();
+            connOpts.setCleanSession(true);
+            connOpts.setConnectionTimeout(60);
+            connOpts.setKeepAliveInterval(60);
+            connOpts.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+
+            //IN CASO DI PARTITA COL SERVER SCOMMENTARE USERNAME E PASSWORD
+            //connOpts.setUserName(userName);
+            //connOpts.setPassword(pwd.toCharArray());
+
+            System.out.println("Connecting to broker: " + broker);
+            sampleClient.connect(connOpts);
+            System.out.println("Connected");
 
             sampleClient.setCallback(new MqttCallback() {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    System.out.println("istanza: " + instance);
                     System.out.println(topic + " says: \n" + message.toString());
                     String msg = message.toString();
                     JSONParser parser = new JSONParser();
@@ -65,11 +83,11 @@ public class Console {
                         if(json.get("game").equals("start")){
 
                             if(myTurn){
-                                int AIMove = makeMove(board);
+                                int AIMove = makeMove(board, test);
                                 System.out.println("Mossa AI: " + AIMove);
 
                                 JSONObject json3 = new JSONObject();
-                                json3.put("move", AIMove);
+                                json3.put("move", Integer.toString(AIMove));
 
                                 message = new MqttMessage(json3.toString().getBytes());
                                 topic = room + "/" + instance + "/" + myName;
@@ -86,7 +104,7 @@ public class Console {
                         int move = Integer.parseInt(moveStr) - 1;
 
 
-                        System.out.println(board);
+
                         if (move < 0 || move >= board.BOARD_WIDTH* board.BOARD_WIDTH) {
                             System.out.println("\nInvalid move.");
                             System.out.println("\nThe index of the move must be between 0 and "
@@ -98,11 +116,11 @@ public class Console {
                         }else{
 
                             System.out.println(board);
-                            int AIMove = makeMove(board);
+                            int AIMove = makeMove(board, test);
                             System.out.println("Mossa AI: " + AIMove);
 
                             json = new JSONObject();
-                            json.put("move", AIMove);
+                            json.put("move", Integer.toString(AIMove));
 
                             message = new MqttMessage(json.toString().getBytes());
                             topic = room + "/" + instance + "/" + myName;
@@ -128,22 +146,8 @@ public class Console {
 
             String topic = room + "/" + instance + "/" + enemy;
             sampleClient.subscribe(topic);
+            System.out.println("istanza " + instance + "iscritto: " + topic);
             sampleClient.subscribe("broadcast");
-
-
-
-
-            //Dico al server che sono online
-            JSONObject json2 = new JSONObject();
-            json2.put(myName, "true");
-
-            topic = "online/" + myName;
-            MqttMessage message = new MqttMessage(json2.toString().getBytes());
-            sampleClient.publish(topic, message);
-
-
-
-
 
 
 
@@ -185,12 +189,9 @@ public class Console {
 
 
 
-    public int makeMove(Board board){
+    public int makeMove(Board board, AlphaBetaAdvanced test){
 
-
-
-        System.out.println("test board: \n" + board);
-        test.alphaBetaAdvanced(board);
+        test.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
         System.out.println("\n" + board + "\n");
         int AIMove;
 

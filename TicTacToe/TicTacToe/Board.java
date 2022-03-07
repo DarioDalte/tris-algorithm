@@ -24,6 +24,7 @@ public class Board {
      * Construct the Tic Tac Toe board.
      */
     Board() {
+
         board = new State[BOARD_WIDTH][BOARD_WIDTH];
         movesAvailable = new HashSet<>();
         reset();
@@ -76,6 +77,7 @@ public class Board {
      * @return          true if the move has not already been played
      */
     private boolean move (int x, int y) {
+
 
 
         if (gameOver) {

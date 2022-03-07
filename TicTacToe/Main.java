@@ -1,6 +1,5 @@
 import TicTacToe.Console;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -57,9 +56,8 @@ public class Main extends Thread {
     }
 
 
-    public Main(int game, MqttClient sampleClient, String room, boolean myTurn, String enemy) {
+    public Main(int game, String room, boolean myTurn, String enemy) {
         this.game = game;
-        this.sampleClient = sampleClient;
         this.room = room;
         this.myTurn = myTurn;
         this.enemy = enemy;
@@ -67,7 +65,7 @@ public class Main extends Thread {
 
     @Override
     public void run() {
-        new Console(game, sampleClient, room, myTurn, enemy);
+        new Console(game, room, myTurn, enemy);
 
     }
 
@@ -130,9 +128,6 @@ public class Main extends Thread {
             rooms.set(i, rooms.get(i).replaceAll("\\r\\n|\\r|\\n", ""));
         }
 
-
-
-
             inbox.close(false);
             store.close();
 
@@ -141,7 +136,7 @@ public class Main extends Thread {
             int qos = 0;
             //CONNESSINE AL BROKER
             String broker = "tcp://localhost:1883";
-            String PubId = "127.0.0.1";
+            String PubId = "130.1.1.1";
 
             MemoryPersistence persistence = new MemoryPersistence();
             MqttClient sampleClient = new MqttClient(broker, PubId, persistence);
@@ -158,6 +153,25 @@ public class Main extends Thread {
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
+
+            //Dico al server che sono online
+            JSONObject json2 = new JSONObject();
+            json2.put("trisser.bot2@gmail.com", "true");
+
+            String topic = "online/trisser.bot2@gmail.com";
+            MqttMessage msg = new MqttMessage(json2.toString().getBytes());
+            sampleClient.publish(topic, msg);
+            sampleClient.subscribe("broadcast");
+
+            sampleClient.setCallback(new MqttCallback() {
+                public void connectionLost(Throwable cause) {}
+
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    System.out.println(topic + " says: ");
+                    System.out.println(message);
+                }
+                public void deliveryComplete(IMqttDeliveryToken token) {}
+            });
 
 
 
@@ -187,20 +201,20 @@ public class Main extends Thread {
             //Lancio i thread
             boolean myTurn;
             //NELLE PARTITE CAMBIARE  -----> y < games <------- invece di y < 1
-            for(int y = 0; y < 1; y++){
+            for(int y = 0; y < 2; y++){
 
                 if(room1){
                     if(y%2 == 0){
-                        new Main(y, sampleClient, rooms.get(0), true, room1Enemy).start();
+                        new Main(y, rooms.get(0), true, room1Enemy).start();
                     }else{
-                        new Main(y, sampleClient, rooms.get(0), false, room1Enemy).start();
+                        new Main(y, rooms.get(0), false, room1Enemy).start();
 
                     }
                 }else{
                     if(y%2 != 0){
-                        new Main(y, sampleClient, rooms.get(0), true, room1Enemy).start();
+                        new Main(y, rooms.get(0), true, room1Enemy).start();
                     }else{
-                        new Main(y, sampleClient, rooms.get(0), false, room1Enemy).start();
+                        new Main(y, rooms.get(0), false, room1Enemy).start();
 
                     }
                 }

@@ -1,6 +1,6 @@
-package ArtificialIntelligence;
+package TicTacToe;
 
-import TicTacToe.Board;
+
 
 /**
  * Uses the Alpha-Beta Pruning algorithm to play a move in a game of Tic Tac Toe
@@ -17,12 +17,15 @@ import TicTacToe.Board;
  */
 class AlphaBetaAdvanced {
 
-    public  double maxPly;
+    public double maxPly;
+
 
     /**
      * AlphaBetaAdvanced cannot be instantiated.
      */
-    public AlphaBetaAdvanced() {}
+    public AlphaBetaAdvanced() {
+        System.out.println("testaaa");
+    }
 
     /**
      * Execute the algorithm.
@@ -31,6 +34,7 @@ class AlphaBetaAdvanced {
      * @param maxPly        the maximum depth
      */
      public void run (Board.State player, Board board, double maxPly) {
+
 
         if (maxPly < 1) {
             throw new IllegalArgumentException("Maximum depth must be greater than 0.");
@@ -50,7 +54,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private int alphaBetaPruning (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    public int alphaBetaPruning (Board.State player, Board board, double alpha, double beta, int currentPly) {
         if (currentPly++ == maxPly || board.isGameOver()) {
             return score(player, board, currentPly);
         }
@@ -72,7 +76,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private int getMax (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    public int getMax (Board.State player, Board board, double alpha, double beta, int currentPly) {
         int indexOfBestMove = -1;
 
         for (Integer theMove : board.getAvailableMoves()) {
@@ -111,7 +115,7 @@ class AlphaBetaAdvanced {
      * @param currentPly    the current depth
      * @return              the score of the board
      */
-    private int getMin (Board.State player, Board board, double alpha, double beta, int currentPly) {
+    public int getMin (Board.State player, Board board, double alpha, double beta, int currentPly) {
         int indexOfBestMove = -1;
 
         for (Integer theMove : board.getAvailableMoves()) {

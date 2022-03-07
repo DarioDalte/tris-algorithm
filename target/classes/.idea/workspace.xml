@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3744276f-8457-48d1-986a-7e6b3305eb38" name="Default Changelist" comment="" />
+    <list default="true" id="3744276f-8457-48d1-986a-7e6b3305eb38" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TicTacToe/Console.java" beforeDir="false" afterPath="$PROJECT_DIR$/TicTacToe/Console.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,6 +34,7 @@
       <option name="presentableId" value="Default" />
       <updated>1646412680211</updated>
       <workItem from="1646412683051" duration="32000" />
+      <workItem from="1646665635430" duration="10000" />
     </task>
     <servers />
   </component>
