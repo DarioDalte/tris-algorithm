@@ -23,6 +23,7 @@ public class Main extends Thread {
     private String room;
     private boolean myTurn;
     private String enemy;
+    private int number;
 
 
     private  static String getTextFromMessage(Message message) throws Exception{
@@ -56,16 +57,17 @@ public class Main extends Thread {
     }
 
 
-    public Main(int game, String room, boolean myTurn, String enemy) {
+    public Main(int game, String room, boolean myTurn, String enemy, int number) {
         this.game = game;
         this.room = room;
         this.myTurn = myTurn;
         this.enemy = enemy;
+        this.number = number;
     }
 
     @Override
     public void run() {
-        new Console(game, room, myTurn, enemy);
+        new Console(game, room, myTurn, enemy, number);
 
     }
 
@@ -201,36 +203,36 @@ public class Main extends Thread {
             //Lancio i thread
             boolean myTurn;
             //NELLE PARTITE CAMBIARE  -----> y < games <------- invece di y < 1
-            for(int y = 0; y < 2; y++){
+            for(int y = 0; y < 5; y++){
 
                 if(room1){
                     if(y%2 == 0){
-                        new Main(y, rooms.get(0), true, room1Enemy).start();
+                        new Main(y, rooms.get(0), true, room1Enemy, 0).start();
                     }else{
-                        new Main(y, rooms.get(0), false, room1Enemy).start();
+                        new Main(y, rooms.get(0), false, room1Enemy, 0).start();
 
                     }
                 }else{
                     if(y%2 != 0){
-                        new Main(y, rooms.get(0), true, room1Enemy).start();
+                        new Main(y, rooms.get(0), true, room1Enemy, 0).start();
                     }else{
-                        new Main(y, rooms.get(0), false, room1Enemy).start();
+                        new Main(y, rooms.get(0), false, room1Enemy, 0).start();
 
                     }
                 }
 
                 if(room2){
                     if(y%2 == 0){
-                        //new Main(y, sampleClient, rooms.get(1), true, room2Enemy).start();
+                       // new Main(y, rooms.get(1), true, room2Enemy, games).start();
                     }else{
-                        //new Main(y, sampleClient, rooms.get(1), false, room2Enemy).start();
+                        //new Main(y, rooms.get(1), false, room2Enemy, games).start();
 
                     }
                 }else{
                     if(y%2 != 0){
-                        //new Main(y, sampleClient, rooms.get(1), true, room2Enemy).start();
+                        //new Main(y, rooms.get(1), true, room2Enemy, games).start();
                     }else{
-                        //new Main(y, sampleClient, rooms.get(1), false, room2Enemy).start();
+                       // new Main(y, rooms.get(1), false, room2Enemy, games).start();
 
                     }
                 }

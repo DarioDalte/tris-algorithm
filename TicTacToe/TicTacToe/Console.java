@@ -25,12 +25,12 @@ public class Console {
     /**
      * Construct Console.
      */
-    public Console(int instance, String room, boolean myTurn, String enemy) {
+    public Console(int instance, String room, boolean myTurn, String enemy, int number) {
         Board board = new Board();
-        System.out.println("istanza " + instance);
+        System.out.println("istanza " + instance + "  " + myTurn);
         System.out.println("room " + room);
         System.out.println("enemy " + enemy);
-        System.out.println("my turn " + myTurn);
+
 
 
 
@@ -44,7 +44,7 @@ public class Console {
         try {
             String broker = "tcp://localhost:1883";
 
-            String PubId = "134.0.0." + (instance +1);
+            String PubId = "134.0.0." + (instance + number);
             System.out.println(PubId);
 
             MemoryPersistence persistence = new MemoryPersistence();
@@ -67,8 +67,8 @@ public class Console {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    System.out.println("istanza: " + instance);
-                    System.out.println(topic + " says: \n" + message.toString());
+                   // System.out.println("\nistanza: " + instance);
+                    //System.out.println(topic + " says: \n" + message.toString());
                     String msg = message.toString();
                     JSONParser parser = new JSONParser();
                     JSONObject json = (JSONObject) parser.parse(msg);
@@ -115,9 +115,9 @@ public class Console {
                             System.out.println(board);
                         }else{
 
-                            System.out.println(board);
+                            //System.out.println(board);
                             int AIMove = makeMove(board, test);
-                            System.out.println("Mossa AI: " + AIMove);
+                            //System.out.println("Mossa AI: " + AIMove);
 
                             json = new JSONObject();
                             json.put("move", Integer.toString(AIMove));
@@ -125,9 +125,6 @@ public class Console {
                             message = new MqttMessage(json.toString().getBytes());
                             topic = room + "/" + instance + "/" + myName;
                             sampleClient.publish(topic, message);
-
-
-
 
                         }
 
@@ -137,7 +134,7 @@ public class Console {
                         }
 
                     }else{
-                        System.out.println("Nulla casso");
+                        //System.out.println("Nulla casso");
                     }
                 }
                 public void deliveryComplete(IMqttDeliveryToken token) {}
@@ -184,7 +181,7 @@ public class Console {
         } else {
             System.out.println("Player " + winner.toString() + " wins!");
         }
-        System.exit(0);
+        //System.exit(0);
     }
 
 
@@ -192,7 +189,7 @@ public class Console {
     public int makeMove(Board board, AlphaBetaAdvanced test){
 
         test.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
-        System.out.println("\n" + board + "\n");
+        //System.out.println("\n" + board + "\n");
         int AIMove;
 
         if(board.rowSelected == 0){
@@ -220,6 +217,8 @@ public class Console {
                 AIMove = 9;
             }
         }
+
+
 
         return AIMove;
     }
