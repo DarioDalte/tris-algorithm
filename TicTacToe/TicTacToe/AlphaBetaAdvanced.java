@@ -24,7 +24,7 @@ class AlphaBetaAdvanced {
      * AlphaBetaAdvanced cannot be instantiated.
      */
     public AlphaBetaAdvanced() {
-        System.out.println("testaaa");
+
     }
 
     /**

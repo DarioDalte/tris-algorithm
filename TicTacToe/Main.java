@@ -9,6 +9,7 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Properties;
 
 
@@ -16,7 +17,7 @@ import java.util.Properties;
 public class Main extends Thread {
 
     private int game;
-    private MqttClient sampleClient;
+    private static MqttClient sampleClient;
     private static String userName;
     private static String pwd;
     private static int games;
@@ -24,6 +25,8 @@ public class Main extends Thread {
     private boolean myTurn;
     private String enemy;
     private int number;
+    private static ArrayList<String> rooms;
+
 
 
     private  static String getTextFromMessage(Message message) throws Exception{
@@ -67,81 +70,85 @@ public class Main extends Thread {
 
     @Override
     public void run() {
-        new Console(game, room, myTurn, enemy, number);
+        new Console(game, room, myTurn, enemy, number, userName, pwd);
 
     }
 
-
-    public static void main(String[] args) {
-
+    public static void getEmail(){
         //Dati connessione all'email
         String host = "imap.gmail.com";
         String mailStoreType = "imap";
         String username = "trisser.bot2@gmail.com";
         String password = "trisserbot2!";
 
-        try {
+        try{
+            // create properties
+            Properties properties = new Properties();
 
+            properties.put("mail.imap.host", host);
+            properties.put("mail.imap.port", "993");
+            properties.put("mail.imap.starttls.enable", "true");
+            properties.put("mail.imap.ssl.trust", host);
 
-        // create properties
-        Properties properties = new Properties();
+            Session emailSession = Session.getDefaultInstance(properties);
 
-        properties.put("mail.imap.host", host);
-        properties.put("mail.imap.port", "993");
-        properties.put("mail.imap.starttls.enable", "true");
-        properties.put("mail.imap.ssl.trust", host);
+            // create the imap store object and connect to the imap server
+            Store store = emailSession.getStore("imaps");
 
-        Session emailSession = Session.getDefaultInstance(properties);
+            store.connect(host, username, password);
 
-        // create the imap store object and connect to the imap server
-        Store store = emailSession.getStore("imaps");
+            // create the inbox object and open it
+            Folder inbox = store.getFolder("Inbox");
+            inbox.open(Folder.READ_WRITE);
 
-        store.connect(host, username, password);
+            // retrieve the messages from the folder in an array and print it
+            Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
 
-        // create the inbox object and open it
-        Folder inbox = store.getFolder("Inbox");
-        inbox.open(Folder.READ_WRITE);
-
-        // retrieve the messages from the folder in an array and print it
-        Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
-
-        int i = 0;
-        Message message = messages[i];
-        message.setFlag(Flags.Flag.SEEN, true);
-        String result = getTextFromMessage(message);
-        JSONParser parser = new JSONParser();
-        JSONObject json = (JSONObject) parser.parse(result);
+            int i = 0;
+            Message message = messages[i];
+            message.setFlag(Flags.Flag.SEEN, true);
+            String result = getTextFromMessage(message);
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(result);
 
             //System.out.println(result);
 
-        //Prendo dall'email il numero di partite che bisogna giocare
-        games = Integer.parseInt(json.get("room_instance").toString());
+            //Prendo dall'email il numero di partite che bisogna giocare
+            games = Integer.parseInt(json.get("room_instance").toString());
 
 
-        //Prendo dall'email l'username e la password per conenttermi al broker
-        userName = json.get("user").toString();
-        pwd = json.get("pwd").toString();
+            //Prendo dall'email l'username e la password per conenttermi al broker
+            userName = json.get("user").toString();
+            pwd = json.get("pwd").toString();
 
 
-        //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
-        ArrayList<String> rooms = (ArrayList<String>) json.get("rooms");
+            //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
+            rooms = (ArrayList<String>) json.get("rooms");
 
-        for(i = 0; i< rooms.size(); i++){
-            rooms.set(i, rooms.get(i).replaceAll("\\r\\n|\\r|\\n", ""));
-        }
+            for(i = 0; i< rooms.size(); i++){
+                rooms.set(i, rooms.get(i).replaceAll("\\r\\n|\\r|\\n", ""));
+            }
 
             inbox.close(false);
             store.close();
 
 
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
 
+    }
+
+    //Connessione al broker
+    public static void connectClient(){
+        try{
             int qos = 0;
-            //CONNESSINE AL BROKER
+            //-----------INIZIO CONNESSINE AL BROKER-----------
             String broker = "tcp://localhost:1883";
             String PubId = "130.1.1.1";
 
             MemoryPersistence persistence = new MemoryPersistence();
-            MqttClient sampleClient = new MqttClient(broker, PubId, persistence);
+            sampleClient = new MqttClient(broker, PubId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
             connOpts.setConnectionTimeout(60);
@@ -155,6 +162,7 @@ public class Main extends Thread {
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
+            //-----------FINE CONNESSINE AL BROKER-----------
 
             //Dico al server che sono online
             JSONObject json2 = new JSONObject();
@@ -163,93 +171,77 @@ public class Main extends Thread {
             String topic = "online/trisser.bot2@gmail.com";
             MqttMessage msg = new MqttMessage(json2.toString().getBytes());
             sampleClient.publish(topic, msg);
-            sampleClient.subscribe("broadcast");
 
+            sampleClient.subscribe("broadcast"); //Mi iscrivo alla topic broadcast
+
+            //Setto la Callback per ricevere i messaggi
             sampleClient.setCallback(new MqttCallback() {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
-                    System.out.println(topic + " says: ");
-                    System.out.println(message);
+                    System.out.println("\n" + topic + " says:\n" + message + "\n");
+                    String msg = message.toString();
+                    JSONParser parser = new JSONParser();
+                    JSONObject json = (JSONObject) parser.parse(msg);
+
+                    if(!Objects.isNull(json.get("1"))){
+                        System.exit(0);
+                    }
                 }
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
-
-
-
-            boolean room1 = false;
-            String room1Enemy;
-            boolean room2 = false;
-            String room2Enemy;
-
-
-            String[] partsRoom1 = rooms.get(0).split("_");
-
-            room1Enemy = partsRoom1[0];
-
-            if(partsRoom1[0].equals("trisser.bot2@gmail.com")){
-                room1Enemy = partsRoom1[1];
-                room1 = true;
-            }
-//            String[] partsRoom2 = rooms.get(1).split("_");
-//
-//            room2Enemy = partsRoom2[0];
-//            if(partsRoom2[0].equals("trisser.bot2@gmail.com")){
-//                room2Enemy = partsRoom2[1];
-//                room2 = true;
-//            }
-
-
-            //Lancio i thread
-            boolean myTurn;
-            //NELLE PARTITE CAMBIARE  -----> y < games <------- invece di y < 1
-            for(int y = 0; y < 5; y++){
-
-                if(room1){
-                    if(y%2 == 0){
-                        new Main(y, rooms.get(0), true, room1Enemy, 0).start();
-                    }else{
-                        new Main(y, rooms.get(0), false, room1Enemy, 0).start();
-
-                    }
-                }else{
-                    if(y%2 != 0){
-                        new Main(y, rooms.get(0), true, room1Enemy, 0).start();
-                    }else{
-                        new Main(y, rooms.get(0), false, room1Enemy, 0).start();
-
-                    }
-                }
-
-                if(room2){
-                    if(y%2 == 0){
-                       // new Main(y, rooms.get(1), true, room2Enemy, games).start();
-                    }else{
-                        //new Main(y, rooms.get(1), false, room2Enemy, games).start();
-
-                    }
-                }else{
-                    if(y%2 != 0){
-                        //new Main(y, rooms.get(1), true, room2Enemy, games).start();
-                    }else{
-                       // new Main(y, rooms.get(1), false, room2Enemy, games).start();
-
-                    }
-                }
-
-
-            }
-
-
-
-            //new Main(2, sampleClient).start();
-
-
-    } catch (Exception e) {
-        System.out.println(e.getMessage());
-        System.out.println("Non ci sono email");
-        System.exit(0);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
+
+    //Lancio i thread dicendogli se devono iniziare prima loro oppure no
+    public static void startThread(){
+        try {
+
+            boolean start; //start = true significa che il bot inizierà nelle istanze pari.
+            String roomEnemy;
+            int number = 0;
+            for (String room : rooms) {
+                start = false;
+
+                String[] partsRoom = room.split("_");
+                roomEnemy = partsRoom[0];
+
+                if(partsRoom[0].equals("trisser.bot2@gmail.com")){
+                    roomEnemy = partsRoom[1];
+                    start = true;
+                }
+
+                for(int y = 0; y < 5; y++){
+                    if(start){
+                        if(y%2 == 0){
+                            new Main(y, room, true, roomEnemy, number).start();
+                        }else{
+                            new Main(y, room, false, roomEnemy, number).start();
+                        }
+                    }else{
+                        if(y%2 != 0){
+                            new Main(y, room, true, roomEnemy, number).start();
+                        }else{
+                            new Main(y, room, false, roomEnemy, number).start();
+                        }
+                    }
+                }
+                number = number + games + 30;
+            }
+            System.out.println("\nWaiting for start...\n");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+
+        getEmail();
+        connectClient();
+        startThread();
 
     }
 }
