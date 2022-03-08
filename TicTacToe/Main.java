@@ -17,7 +17,7 @@ import java.util.Properties;
 public class Main extends Thread {
 
     private int game;
-    private static MqttClient sampleClient;
+    private static MqttClient client;
     private static String userName;
     private static String pwd;
     private static int games;
@@ -108,6 +108,10 @@ public class Main extends Thread {
             Message message = messages[i];
             message.setFlag(Flags.Flag.SEEN, true);
             String result = getTextFromMessage(message);
+
+            inbox.close(false);
+            store.close();
+
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(result);
 
@@ -118,8 +122,8 @@ public class Main extends Thread {
 
 
             //Prendo dall'email l'username e la password per conenttermi al broker
-            userName = json.get("user").toString();
-            pwd = json.get("pwd").toString();
+            //userName = json.get("user").toString();
+            //pwd = json.get("pwd").toString();
 
 
             //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
@@ -129,8 +133,7 @@ public class Main extends Thread {
                 rooms.set(i, rooms.get(i).replaceAll("\\r\\n|\\r|\\n", ""));
             }
 
-            inbox.close(false);
-            store.close();
+
 
 
         }catch (Exception e){
@@ -148,7 +151,7 @@ public class Main extends Thread {
             String PubId = "130.1.1.1";
 
             MemoryPersistence persistence = new MemoryPersistence();
-            sampleClient = new MqttClient(broker, PubId, persistence);
+            client = new MqttClient(broker, PubId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(true);
             connOpts.setConnectionTimeout(60);
@@ -156,11 +159,11 @@ public class Main extends Thread {
             connOpts.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
 
             //IN CASO DI PARTITA COL SERVER SCOMMENTARE USERNAME E PASSWORD
-            //connOpts.setUserName(userName);
+            connOpts.setUserName(userName);
             //connOpts.setPassword(pwd.toCharArray());
 
             System.out.println("Connecting to broker: " + broker);
-            sampleClient.connect(connOpts);
+            client.connect(connOpts);
             System.out.println("Connected");
             //-----------FINE CONNESSINE AL BROKER-----------
 
@@ -170,12 +173,12 @@ public class Main extends Thread {
 
             String topic = "online/trisser.bot2@gmail.com";
             MqttMessage msg = new MqttMessage(json2.toString().getBytes());
-            sampleClient.publish(topic, msg);
+            client.publish(topic, msg);
 
-            sampleClient.subscribe("broadcast"); //Mi iscrivo alla topic broadcast
+            client.subscribe("broadcast"); //Mi iscrivo alla topic broadcast
 
             //Setto la Callback per ricevere i messaggi
-            sampleClient.setCallback(new MqttCallback() {
+            client.setCallback(new MqttCallback() {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
