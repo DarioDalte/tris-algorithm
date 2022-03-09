@@ -1,4 +1,4 @@
-package TicTacToe;
+
 
 import java.util.HashSet;
 
@@ -80,9 +80,9 @@ public class Board {
 
 
 
-        if (gameOver) {
-            throw new IllegalStateException("TicTacToe is over. No moves can be played.");
-        }
+//        if (gameOver) {
+//            throw new IllegalStateException("TicTacToe is over. No moves can be played.");
+//        }
 
 
         if (board[y][x] == State.Blank) {
