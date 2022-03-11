@@ -27,10 +27,39 @@ public class Main extends Thread {
     private static String myName = "trisser.bot2@gmail.com";
     private JSONObject JSONmessage;
     private String topic;
+    private static int lose;
+    private static int win;
+    private static int draw;
+    private static boolean thereIsEnemy = true;
 
     public Main(JSONObject JSONmessage, String topic) {
         this.JSONmessage = JSONmessage;
         this.topic = topic;
+
+    }
+
+    public static void initializeThread(int i){
+        Thread thread1 = new Thread () {
+            public void run () {
+                String myTopic;
+                for (int x = 0; x < starts.get(i).size(); x++) {
+                    if(starts.get(i).get(x)){
+                        myTopic = rooms.get(i) + "/" + x + "/" + myName;
+                        makeMove(boards.get(i).get(x), myTopic);
+                        // System.out.println(boards.get(i).get(x));
+                    }
+                }
+            }
+        };
+        thread1.start();
+    }
+    public static void thread2(){
+        Thread thread2 = new Thread () {
+            public void run () {
+                System.out.println("cuiao dal 2");
+            }
+        };
+        thread2.start();
 
     }
 
@@ -47,19 +76,7 @@ public class Main extends Thread {
                 System.out.println("Errore nella room " + room + "/" + instance);
             }
 
-            if(!Objects.isNull(JSONmessage.get("game"))){
-                if(JSONmessage.get("game").equals("start")){
-                    String myTopic;
-                    for (int i = 0; i < rooms.size(); i++) {
-                        for (int x = 0; x < starts.get(i).size(); x++) {
-                            if(starts.get(i).get(x)){
-                                myTopic = rooms.get(i) + "/" + x + "/" + myName;
-                                makeMove(boards.get(i).get(x), myTopic);
-                            }
-                        }
-                    }
-                }
-            }
+
 
 
 
@@ -88,6 +105,7 @@ public class Main extends Thread {
                             //System.out.println(board);
                             if(!boards.get(roomInstance).get(instance).isGameOver()){
                                 makeMove(boards.get(roomInstance).get(instance), myTopic);
+                                //System.out.println(boards.get(roomInstance).get(instance));
                             }
                             //System.out.println("Mossa AI: " + AIMove);
                     }
@@ -167,13 +185,14 @@ public class Main extends Thread {
             message.setFlag(Flags.Flag.SEEN, true);
             String result = getTextFromMessage(message);
 
+
             inbox.close(false);
             store.close();
 
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(result);
 
-            //System.out.println(result);
+
 
             //Prendo dall'email il numero di partite che bisogna giocare
             games = Integer.parseInt(json.get("room_instance").toString());
@@ -186,6 +205,7 @@ public class Main extends Thread {
 
             //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
             rooms = (ArrayList<String>) json.get("rooms");
+
 
             for(i = 0; i< rooms.size(); i++){
                 if(rooms.get(i).contains("trisser.bot2@gmail.com")){
@@ -228,9 +248,9 @@ public class Main extends Thread {
             //connOpts.setPassword(pwd.toCharArray());
 
 
-            System.out.println("Connecting to broker: " + broker);
+            System.out.println("Mi connetto al broker: " + broker);
             client.connect(connOpts);
-            System.out.println("Connected");
+            System.out.println("Connesso!");
             //-----------FINE CONNESSINE AL BROKER-----------
 
             //Dico al server che sono online
@@ -255,12 +275,39 @@ public class Main extends Thread {
                     JSONParser parser = new JSONParser();
                     JSONObject json = (JSONObject) parser.parse(msg);
 
+                    if(!Objects.isNull(json.get("game")) && thereIsEnemy){
+                        System.out.println("\nInizio!");
+                        System.out.println("\nSto giocando...");
+                            if(json.get("game").equals("start")){
+                                for (int i = 0; i < rooms.size(); i++) {
+                                    initializeThread(i);
+                                }
+                            }
+                    }
+
+                    if(!Objects.isNull(json.get("not_connected"))){
+                        for (int i = 0; i < rooms.size(); i++) {
+                            if(rooms.get(i).contains(json.get("not_connected").toString())){
+                                rooms.remove(i);
+                            }
+                        }
+                        if(rooms.isEmpty() && thereIsEnemy){
+                            thereIsEnemy = false;
+                            System.out.println("Nessun nemico si è connesso");
+                            System.out.println("Aspetto la classifica...");
+                        }
+
+                    }
+
                     if(!Objects.isNull(json.get("1"))){
                         System.out.println("\nClassifica: \n" + msg);
+                        System.out.println("\nPartite Vinte: " + win);
+                        System.out.println("Partite Perse: " + lose);
+                        System.out.println("Partite Pareggiate: " + draw);
                         System.exit(0);
                     }
 
-                    new Main(json, topic).start();
+                   new Main(json, topic).start();
                 }
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
@@ -302,19 +349,23 @@ public class Main extends Thread {
                     //System.out.println(topic);
                     client.subscribe(topic);
                     //System.out.println(topic);
-                    boardsTemp.add(new Board());
+
 
                     if(start){
                         if(y%2 == 0){
                             startsTemp.add(true);
+                            boardsTemp.add(new Board(Board.State.X));
                         }else{
                             startsTemp.add(false);
+                            boardsTemp.add(new Board(Board.State.O));
                         }
                     }else{
                         if(y%2 != 0){
                             startsTemp.add(true);
+                            boardsTemp.add(new Board(Board.State.X));
                         }else{
                             startsTemp.add(false);
+                            boardsTemp.add(new Board(Board.State.O));
                         }
                     }
                 }
@@ -340,7 +391,7 @@ public class Main extends Thread {
 //            System.out.println("\n" +boards);
 //            System.out.println("\n" +starts);
 
-            System.out.println("\nWaiting to start...\n");
+            System.out.println("\nAspetto l'inizio...\n");
             //System.out.println(roomsTest.indexOf("TRISSER.bot3@gmail.caom_trisser.bot2@gmail.com"));
 
 
@@ -356,9 +407,10 @@ public class Main extends Thread {
         connectClient();
         startThread();
 
+
     }
 
-    public void makeMove(Board board, String myTopic){
+    public static void makeMove(Board board, String myTopic){
 
         AI.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
         //System.out.println("\n" + board + "\n");
@@ -404,9 +456,15 @@ public class Main extends Thread {
         Board.State winner = board.getWinner();
 
         if (winner == Board.State.Blank) {
-            System.out.println("The TicTacToe is a Draw.");
+            //System.out.println("The TicTacToe is a Draw.");
+            draw++;
         } else {
-            System.out.println("Player " + winner.toString() + " wins!");
+            //System.out.println("Player " + winner.toString() + " wins!");
+            if(winner.toString().equals("X")){
+                win++;
+            }else{
+                lose++;
+            }
         }
         //System.exit(0);
     }

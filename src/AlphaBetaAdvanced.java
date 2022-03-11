@@ -81,7 +81,7 @@ class AlphaBetaAdvanced {
 
         for (Integer theMove : board.getAvailableMoves()) {
 
-            Board modifiedBoard = board.getDeepCopy();
+            Board modifiedBoard = board.getDeepCopy(player);
             modifiedBoard.move(theMove);
             int score = alphaBetaPruning(player, modifiedBoard, alpha, beta, currentPly);
 
@@ -120,7 +120,7 @@ class AlphaBetaAdvanced {
 
         for (Integer theMove : board.getAvailableMoves()) {
 
-            Board modifiedBoard = board.getDeepCopy();
+            Board modifiedBoard = board.getDeepCopy(player);
             modifiedBoard.move(theMove);
 
             int score = alphaBetaPruning(player, modifiedBoard, alpha, beta, currentPly);

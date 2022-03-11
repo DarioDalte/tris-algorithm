@@ -23,11 +23,11 @@ public class Board {
     /**
      * Construct the Tic Tac Toe board.
      */
-    Board() {
+    Board(State turn) {
 
         board = new State[BOARD_WIDTH][BOARD_WIDTH];
         movesAvailable = new HashSet<>();
-        reset();
+        reset(turn);
     }
 
     /**
@@ -51,11 +51,11 @@ public class Board {
     /**
      * Restart the game with a new blank board.
      */
-    void reset () {
+    void reset (State turn) {
         moveCount = 0;
         gameOver = false;
 
-        playersTurn = State.X;
+        playersTurn = turn;
         winner = State.Blank;
         initialize();
     }
@@ -234,8 +234,8 @@ public class Board {
      * Get a deep copy of the Tic Tac Toe board.
      * @return      an identical copy of the board
      */
-    public Board getDeepCopy () {
-        Board board             = new Board();
+    public Board getDeepCopy (State player) {
+        Board board             = new Board(player);
 
         for (int i = 0; i < board.board.length; i++) {
             board.board[i] = this.board[i].clone();
