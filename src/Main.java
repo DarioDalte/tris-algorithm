@@ -11,6 +11,7 @@ import javax.mail.search.FlagTerm;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Scanner;
 
 
 
@@ -31,6 +32,7 @@ public class Main extends Thread {
     private static int win;
     private static int draw;
     private static boolean thereIsEnemy = true;
+    private static boolean emailError = true;
 
     public Main(JSONObject JSONmessage, String topic) {
         this.JSONmessage = JSONmessage;
@@ -53,15 +55,7 @@ public class Main extends Thread {
         };
         thread1.start();
     }
-    public static void thread2(){
-        Thread thread2 = new Thread () {
-            public void run () {
-                System.out.println("cuiao dal 2");
-            }
-        };
-        thread2.start();
 
-    }
 
     @Override
     public void run() {
@@ -178,7 +172,7 @@ public class Main extends Thread {
             inbox.open(Folder.READ_WRITE);
 
             // retrieve the messages from the folder in an array and print it
-            Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
+            Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
             int i = 0;
             Message message = messages[i];
@@ -199,8 +193,8 @@ public class Main extends Thread {
 
 
             //Prendo dall'email l'username e la password per conenttermi al broker
-            //userName = json.get("user").toString();
-            //pwd = json.get("pwd").toString();
+            userName = json.get("user").toString();
+            pwd = json.get("pwd").toString();
 
 
             //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
@@ -215,13 +209,23 @@ public class Main extends Thread {
                 }
             }
             //System.out.println(rooms);
+            //System.out.println(games);
+            //System.out.println(username);
+            //System.out.println(pwd);
 
 
 
 
-
+            emailError = false;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+           // System.out.println(e.getMessage());
+            System.out.print("Errore nella lettura della mail, vuoi riprovare? (s/n): ");
+            Scanner chooseScanner = new Scanner(System.in);
+            String choose = chooseScanner.nextLine();
+            if(!choose.equals("s")){
+                System.out.println("Ok esco...");
+                System.exit(0);
+            }
         }
 
     }
@@ -229,10 +233,21 @@ public class Main extends Thread {
     //Connessione al broker
     public static void connectClient(){
         try{
+            System.out.println("Mail letta.\n");
+
             int qos = 0;
             //-----------INIZIO CONNESSINE AL BROKER-----------
-            String broker = "tcp://localhost:1883";
-            String PubId = "150.1.1.1";
+            Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+            System.out.print("Indirizzo ip: ");
+
+            String ip = myObj.nextLine();  // Read user input
+            String broker = "tcp://" + ip + ":1883";
+
+            System.out.print("\nInserisci un Pub Id: ");
+
+            String PubId = myObj.nextLine();
+
+           // String PubId = "132.1.1.1";
 
             MemoryPersistence persistence = new MemoryPersistence();
             client = new MqttClient(broker, PubId, persistence);
@@ -313,6 +328,7 @@ public class Main extends Thread {
             });
         }catch (Exception e){
             System.out.println(e.getMessage());
+
         }
     }
 
@@ -402,8 +418,9 @@ public class Main extends Thread {
 
     public static void main(String[] args) {
 
-
-        getEmail();
+        while(emailError){
+            getEmail();
+        }
         connectClient();
         startThread();
 
