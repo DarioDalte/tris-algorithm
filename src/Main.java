@@ -17,6 +17,7 @@ import java.util.Scanner;
 
 public class Main extends Thread {
 
+    /* Attributi */
     private static AlphaBetaAdvanced AI = new AlphaBetaAdvanced();
     private static MqttClient client;
     private static String userName;
@@ -34,12 +35,18 @@ public class Main extends Thread {
     private static boolean thereIsEnemy = true;
     private static boolean emailError = true;
 
+
+    /* Costruttore */
     public Main(JSONObject JSONmessage, String topic) {
         this.JSONmessage = JSONmessage;
         this.topic = topic;
 
     }
 
+    /**@
+     * Start multiple threads to initialize different room simultaneously
+     * @param i room number (eg 0, 1, 2)
+     * */
     public static void initializeThread(int i){
         Thread thread1 = new Thread () {
             public void run () {
@@ -62,16 +69,12 @@ public class Main extends Thread {
 
             //System.out.println("\n" + topic + " says:\n" + JSONmessage + "\n");
 
-
             if(!Objects.isNull(JSONmessage.get("error")) && JSONmessage.get("player").equals("trisser.bot2@gmail.com")){
                 String[] topicParts = topic.split("/");
                 String room = topicParts[0];
                 String instance = topicParts[1];
                 System.out.println("Errore nella room " + room + "/" + instance);
             }
-
-
-
 
 
             boolean error = false;
@@ -144,6 +147,9 @@ public class Main extends Thread {
     }
 
 
+    /**
+     * Take last unread email and interprets all its data
+     * */
     public static void getEmail(){
         //Dati connessione all'email
         String host = "imap.gmail.com";
@@ -358,8 +364,6 @@ public class Main extends Thread {
                     start = true;
                 }
 
-
-
                 for(int y = 0; y < games; y++){
                     topic = room + "/" + y + "/" + roomEnemy;
                     //System.out.println(topic);
@@ -416,16 +420,6 @@ public class Main extends Thread {
         }
     }
 
-    public static void main(String[] args) {
-
-        while(emailError){
-            getEmail();
-        }
-        connectClient();
-        startThread();
-
-
-    }
 
     public static void makeMove(Board board, String myTopic){
 
@@ -469,6 +463,8 @@ public class Main extends Thread {
         }
     }
 
+
+
     public static void printWinner (Board board) {
         Board.State winner = board.getWinner();
 
@@ -485,5 +481,17 @@ public class Main extends Thread {
         }
         //System.exit(0);
     }
+
+
+
+    public static void main(String[] args) {
+
+        while(emailError){
+            getEmail();
+        }
+        connectClient();
+        startThread();
+    }
+
 }
 
