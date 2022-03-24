@@ -7,7 +7,7 @@ import org.json.simple.parser.JSONParser;
 
 import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
-import javax.mail.search.FlagTerm;
+import javax.mail.search.*;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Properties;
@@ -178,12 +178,17 @@ public class Main extends Thread {
             inbox.open(Folder.READ_WRITE);
 
             // retrieve the messages from the folder in an array and print it
-            Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+            SearchTerm searchTerm = new AndTerm(new SubjectTerm("GAME"), new BodyTerm("GAME"));
+            //Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+            Message[] messages = inbox.search(searchTerm);
+            messages[0].setFlag(Flags.Flag.DELETED, true);
+            //System.out.println(messages);
 
             int i = 0;
             Message message = messages[i];
             message.setFlag(Flags.Flag.SEEN, true);
             String result = getTextFromMessage(message);
+            System.out.println(result);
 
 
             inbox.close(false);
