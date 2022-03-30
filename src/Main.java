@@ -188,7 +188,7 @@ public class Main extends Thread {
             Message message = messages[i];
             message.setFlag(Flags.Flag.SEEN, true);
             String result = getTextFromMessage(message);
-            System.out.println(result);
+            //System.out.println(result);
 
 
             inbox.close(false);
