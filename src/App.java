@@ -1,10 +1,7 @@
-
-
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
 import javax.mail.*;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.*;
@@ -14,10 +11,9 @@ import java.util.Properties;
 import java.util.Scanner;
 
 
+public class App extends Thread {
 
-public class Main extends Thread {
-
-    /* Attributi */
+    /* Attributes */
     private static AlphaBetaAdvanced AI = new AlphaBetaAdvanced();
     private static MqttClient client;
     private static String userName;
@@ -36,11 +32,10 @@ public class Main extends Thread {
     private static boolean emailError = true;
 
 
-    /* Costruttore */
-    public Main(JSONObject JSONmessage, String topic) {
+    /* Constructor */
+    public App(JSONObject JSONmessage, String topic) {
         this.JSONmessage = JSONmessage;
         this.topic = topic;
-
     }
 
     /**@
@@ -55,7 +50,6 @@ public class Main extends Thread {
                     if(starts.get(i).get(x)){
                         myTopic = rooms.get(i) + "/" + x + "/" + myName;
                         makeMove(boards.get(i).get(x), myTopic);
-                        // System.out.println(boards.get(i).get(x));
                     }
                 }
             }
@@ -63,22 +57,13 @@ public class Main extends Thread {
         thread1.start();
     }
 
-
+    /** Thread that will manage the opponent's moves */
     @Override
     public void run() {
 
-            //System.out.println("\n" + topic + " says:\n" + JSONmessage + "\n");
-
-            if(!Objects.isNull(JSONmessage.get("error")) && JSONmessage.get("player").equals("trisser.bot2@gmail.com")){
-                String[] topicParts = topic.split("/");
-                String room = topicParts[0];
-                String instance = topicParts[1];
-                System.out.println("Errore nella room " + room + "/" + instance);
-            }
-
-
             boolean error = false;
             int instance;
+
             if(!topic.equals("broadcast")){
                 String[] topicParts = topic.split("/");
                 String room = topicParts[0];
@@ -90,27 +75,21 @@ public class Main extends Thread {
                     String moveStr = JSONmessage.get("move").toString();
                     int move = Integer.parseInt(moveStr) - 1;
                     if (move < 0 || move >= 9) {
-                        System.out.println("\nInvalid enemy move.");
-                        System.out.println("\nThe index of the move must be between 1 and "
-                                + (9) + ", inclusive.");
+                        System.out.println("\nMossa del nemico invalida");
                     } else if (!boards.get(roomInstance).get(instance).move(move)) {
-                        System.out.println("\nInvalid enemy move.");
+                        System.out.println("\nMossa del nemico invalida");
                         error = true;
-//                        System.out.println("\nThe selected index must be blank.");
-//                        System.out.println(boards.get(instance));
                     }else{
-                            //System.out.println(board);
-                            if(!boards.get(roomInstance).get(instance).isGameOver()){
-                                makeMove(boards.get(roomInstance).get(instance), myTopic);
-                                //System.out.println(boards.get(roomInstance).get(instance));
-                            }
-                            //System.out.println("Mossa AI: " + AIMove);
+                        if(!boards.get(roomInstance).get(instance).isGameOver()){
+                            makeMove(boards.get(roomInstance).get(instance), myTopic);
+                        }
                     }
                 }
-                if (boards.get(roomInstance).get(instance).isGameOver() && !error) {
-                    printWinner(boards.get(roomInstance).get(instance));
-                }
 
+                //Check Game over in a board
+                if (boards.get(roomInstance).get(instance).isGameOver() && !error) {
+                    gameOver(boards.get(roomInstance).get(instance));
+                }
             }
     }
 
@@ -148,18 +127,19 @@ public class Main extends Thread {
 
 
     /**
-     * Take last unread email and interprets all its data
+     * Take last unread mail with object equals to 'GAME', interprets all its data and last delete this mail.
      * */
     public static void getEmail(){
-        //Dati connessione all'email
         String host = "imap.gmail.com";
         String mailStoreType = "imap";
+        //Mail data
         String username = "trisser.bot2@gmail.com";
         String password = "trisserbot2!";
 
         try{
             // create properties
             Properties properties = new Properties();
+            System.out.println("\nLeggo la mail...");
 
             properties.put("mail.imap.host", host);
             properties.put("mail.imap.port", "993");
@@ -179,17 +159,12 @@ public class Main extends Thread {
 
             // retrieve the messages from the folder in an array and print it
             SearchTerm searchTerm = new AndTerm(new SubjectTerm("GAME"), new BodyTerm("GAME"));
-            //Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
             Message[] messages = inbox.search(searchTerm);
             messages[0].setFlag(Flags.Flag.DELETED, true);
-            //System.out.println(messages);
 
             int i = 0;
             Message message = messages[i];
-            message.setFlag(Flags.Flag.SEEN, true);
             String result = getTextFromMessage(message);
-            //System.out.println(result);
-
 
             inbox.close(false);
             store.close();
@@ -197,21 +172,20 @@ public class Main extends Thread {
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(result);
 
-
-
-            //Prendo dall'email il numero di partite che bisogna giocare
+            //Take from the email the number of games you need to play
             games = Integer.parseInt(json.get("room_instance").toString());
 
 
-            //Prendo dall'email l'username e la password per conenttermi al broker
+            //Take from the email the username and password to connect to the broker
             userName = json.get("user").toString();
             pwd = json.get("pwd").toString();
 
 
-            //Prendo dall'email le room, mi serviranno poi per iscrivermi alle topic
+            //Take the rooms from the email, I will need them later to subscribe to the topic
             rooms = (ArrayList<String>) json.get("rooms");
 
 
+            //Remove all the room which not contain my name
             for(i = 0; i< rooms.size(); i++){
                 if(rooms.get(i).contains("trisser.bot2@gmail.com")){
                     rooms.set(i, rooms.get(i).replaceAll("\\r\\n|\\r|\\n", ""));
@@ -219,17 +193,10 @@ public class Main extends Thread {
                     rooms.remove(i);
                 }
             }
-            //System.out.println(rooms);
-            //System.out.println(games);
-            //System.out.println(username);
-            //System.out.println(pwd);
 
-
-
-
+            System.out.println("\nMail letta.\n");
             emailError = false;
-        }catch (Exception e){
-           // System.out.println(e.getMessage());
+        }catch (Exception e){//The email does not exist or has already been read
             System.out.print("Errore nella lettura della mail, vuoi riprovare? (s/n): ");
             Scanner chooseScanner = new Scanner(System.in);
             String choose = chooseScanner.nextLine();
@@ -241,25 +208,17 @@ public class Main extends Thread {
 
     }
 
-    //Connessione al broker
-    public static void connectClient(){
+    /**
+     * This function will sett all the option for the connection to the broker and then try to connect to it.
+     * After the connection will set a callback to receive all messages sent by the server
+     *
+     * @param broker ip of the broker to which our client will have to connect to
+     * @param PubId unique identifier of our bot
+     * */
+    public static void connectClient(String broker, String PubId){
         try{
-            System.out.println("Mail letta.\n");
 
-            int qos = 0;
-            //-----------INIZIO CONNESSINE AL BROKER-----------
-            Scanner myObj = new Scanner(System.in);  // Create a Scanner object
-            System.out.print("Indirizzo ip: ");
-
-            String ip = myObj.nextLine();  // Read user input
-            String broker = "tcp://" + ip + ":1883";
-
-            System.out.print("\nInserisci un Pub Id: ");
-
-            String PubId = myObj.nextLine();
-
-           // String PubId = "132.1.1.1";
-
+            //----------- STAR BROKER CONNECTION -----------
             MemoryPersistence persistence = new MemoryPersistence();
             client = new MqttClient(broker, PubId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
@@ -268,18 +227,15 @@ public class Main extends Thread {
             connOpts.setKeepAliveInterval(60);
             connOpts.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
             connOpts.setMaxInflight(1000000);
-
-            //IN CASO DI PARTITA COL SERVER SCOMMENTARE USERNAME E PASSWORD
-            //connOpts.setUserName(userName);
-            //connOpts.setPassword(pwd.toCharArray());
-
+            connOpts.setUserName(userName);
+            connOpts.setPassword(pwd.toCharArray());
 
             System.out.println("Mi connetto al broker: " + broker);
             client.connect(connOpts);
             System.out.println("Connesso!");
-            //-----------FINE CONNESSINE AL BROKER-----------
+            //----------- END BROKER CONNECTION -----------
 
-            //Dico al server che sono online
+            //Inform the server that i im online
             JSONObject json2 = new JSONObject();
             json2.put("trisser.bot2@gmail.com", "true");
 
@@ -288,35 +244,35 @@ public class Main extends Thread {
             msg.setQos(1);
             client.publish(topic, msg);
 
-            client.subscribe("broadcast"); //Mi iscrivo alla topic broadcast
+            client.subscribe("broadcast"); //Subscribe to broadcast topic
 
-            //Setto la Callback per ricevere i messaggi
+            //Callback to receive all messages sent by the server
             client.setCallback(new MqttCallback() {
                 public void connectionLost(Throwable cause) {}
 
                 public void messageArrived(String topic, MqttMessage message) throws Exception {
 
-                    //System.out.println("\n" + topic + " says:\n" + message + "\n");
                     String msg = message.toString();
                     JSONParser parser = new JSONParser();
                     JSONObject json = (JSONObject) parser.parse(msg);
 
+                    //Server says Game Start
                     if(!Objects.isNull(json.get("game")) && thereIsEnemy){
                         System.out.println("\nInizio!");
                         System.out.println("\nSto giocando...");
-                            if(json.get("game").equals("start")){
-                                for (int i = 0; i < rooms.size(); i++) {
-                                    initializeThread(i);
-                                }
-                            }
+                        for (int i = 0; i < rooms.size(); i++) {
+                            initializeThread(i);
+                        }
                     }
 
+                    //the server says that someone did not connect, so i will remove it from my rooms array
                     if(!Objects.isNull(json.get("not_connected"))){
                         for (int i = 0; i < rooms.size(); i++) {
                             if(rooms.get(i).contains(json.get("not_connected").toString())){
                                 rooms.remove(i);
                             }
                         }
+                        //There are no bot
                         if(rooms.isEmpty() && thereIsEnemy){
                             thereIsEnemy = false;
                             System.out.println("Nessun nemico si è connesso");
@@ -325,6 +281,7 @@ public class Main extends Thread {
 
                     }
 
+                    //Server says the result so the game is over.
                     if(!Objects.isNull(json.get("1"))){
                         System.out.println("\nClassifica: \n" + msg);
                         System.out.println("\nPartite Vinte: " + win);
@@ -333,48 +290,50 @@ public class Main extends Thread {
                         System.exit(0);
                     }
 
-                   new Main(json, topic).start();
+                   if(!topic.equals("broadcast")){
+                       new App(json, topic).start(); //Start a thread which will manage the enemy move.
+                   }
                 }
                 public void deliveryComplete(IMqttDeliveryToken token) {}
             });
         }catch (Exception e){
             System.out.println(e.getMessage());
-
         }
     }
 
 
-    //Lancio i thread dicendogli se devono iniziare prima loro oppure no
-    public static void startThread(){
+    /**
+     * This function will initialize the two arraylist used to manage all the matches: starts and boards.
+     * The two arraylist will contain n arraylist as many as there are rooms.
+     *
+     * - an internal starts' arraylist will contain n flag (true or false) as many as there are the room instances.
+     *   true means: in this room i will start and false means: in this room enemy will start.
+     *
+     * - an internal boards' arraylist will contain n tic-tac-toe board as many as there are the room instances.
+     * */
+    public static void initializeArrays(){
         try {
             String topic;
-            boolean start; //start = true significa che il bot inizierà nelle istanze pari.
+            boolean start; //start = true means that the bot will start in even-numbered instances.
             String roomEnemy;
-
 
             ArrayList<Board> boardsTemp = new ArrayList<>();
             ArrayList<Boolean> startsTemp = new ArrayList<>();
 
             for (String room : rooms) {
 
-                //System.out.println(room);
-               // JSONgames.put(room,)
-                start = false;
-
                 String[] partsRoom = room.split("_");
                 roomEnemy = partsRoom[0];
+                start = false;
 
-                if(partsRoom[0].equals("trisser.bot2@gmail.com")){
+                if(partsRoom[0].equals("trisser.bot2@gmail.com")){ //Eg. trisser.bot2@gmail.com_trisser.bot3@gmail.com
                     roomEnemy = partsRoom[1];
                     start = true;
                 }
 
                 for(int y = 0; y < games; y++){
-                    topic = room + "/" + y + "/" + roomEnemy;
-                    //System.out.println(topic);
+                    topic = room + "/" + y + "/" + roomEnemy; //Eg. trisser.bot2@gmail.com_trisser.bot3@gmail.com/2/trisser.bot3@gmail.com
                     client.subscribe(topic);
-                    //System.out.println(topic);
-
 
                     if(start){
                         if(y%2 == 0){
@@ -395,30 +354,17 @@ public class Main extends Thread {
                     }
                 }
 
-
-
                 ArrayList clone = (ArrayList)startsTemp.clone();
                 starts.add(clone);
 
                 clone = (ArrayList)boardsTemp.clone();
                 boards.add(clone);
 
-
-
                 boardsTemp.clear();
                 startsTemp.clear();
-
-
-
-
             }
-//            System.out.println("\n" + rooms);
-//            System.out.println("\n" +boards);
-//            System.out.println("\n" +starts);
 
             System.out.println("\nAspetto l'inizio...\n");
-            //System.out.println(roomsTest.indexOf("TRISSER.bot3@gmail.caom_trisser.bot2@gmail.com"));
-
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -426,12 +372,17 @@ public class Main extends Thread {
     }
 
 
+    /** This function will call the AI to make the perfect move.
+     *
+     * @param board tic-tac-toe playing field
+     * @param myTopic topic on which the AI move will be sent
+     * */
     public static void makeMove(Board board, String myTopic){
 
-        AI.run(board.getTurn(), board, Double.POSITIVE_INFINITY);
-        //System.out.println("\n" + board + "\n");
+        AI.run(board.getTurn(), board, Double.POSITIVE_INFINITY); //Run the AI that will set the column and row selected.
         int AIMove;
 
+        //Convert the AI move coordinates. Eg. the move (0, 2) (0 = row, 2 = column) will be converted in: 3
         if(board.rowSelected == 0){
             if(board.columnSelected == 0){
                 AIMove = 1;
@@ -461,7 +412,7 @@ public class Main extends Thread {
             JSONObject JSONmove = new JSONObject();
             JSONmove.put("move", Integer.toString(AIMove));
             MqttMessage move = new MqttMessage(JSONmove.toString().getBytes());
-            move.setQos(1);
+            move.setQos(0);
             client.publish(myTopic, move);
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -469,34 +420,42 @@ public class Main extends Thread {
     }
 
 
-
-    public static void printWinner (Board board) {
+    /**This function increase the results variabile
+     *
+     * @param board tic-tac-toe playing field
+     * */
+    public static void gameOver (Board board) {
         Board.State winner = board.getWinner();
 
-        if (winner == Board.State.Blank) {
-            //System.out.println("The TicTacToe is a Draw.");
+        if (winner == Board.State.Blank) {//The game is a draw
             draw++;
         } else {
-            //System.out.println("Player " + winner.toString() + " wins!");
-            if(winner.toString().equals("X")){
+            if(winner.toString().equals("X")){//Our bot win the game
                 win++;
-            }else{
+            }else{//Our bot lost the game
                 lose++;
             }
         }
-        //System.exit(0);
     }
 
 
 
     public static void main(String[] args) {
 
+        Scanner myObj = new Scanner(System.in);
+        System.out.print("Indirizzo ip: ");
+
+        String ip = myObj.nextLine();  // Read broker ip
+        String broker = "tcp://" + ip + ":1883";
+
+        System.out.print("\nInserisci un Pub Id: ");
+        String PubId = myObj.nextLine(); // Read our pub id, different than other bot
+
         while(emailError){
             getEmail();
         }
-        connectClient();
-        startThread();
+        connectClient(broker, PubId);
+        initializeArrays();
     }
 
 }
-
