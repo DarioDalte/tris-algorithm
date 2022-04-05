@@ -11,6 +11,16 @@ import java.util.Properties;
 import java.util.Scanner;
 
 
+/**bot that, through the MQTT protocol, is able to play multiple games of tic-tac-toe simultaneously
+ *
+ * @author D'Alterio Dario
+ * @author Shaukat Arslan
+ * @author Jacopo Beltrami
+ * @author Navraj Singh
+ * @author Marzola Alessandro
+ *
+ * @version 1.1
+ */
 public class App extends Thread {
 
     /* Attributes */
@@ -38,11 +48,11 @@ public class App extends Thread {
         this.topic = topic;
     }
 
-    /**@
+    /**
      * Start multiple threads to initialize different room simultaneously
      * @param i room number (eg 0, 1, 2)
      * */
-    public static void initializeThread(int i){
+    public static void initializeRoom(int i){
         Thread thread1 = new Thread () {
             public void run () {
                 String myTopic;
@@ -92,7 +102,6 @@ public class App extends Thread {
                 }
             }
     }
-
 
 
     private  static String getTextFromMessage(Message message) throws Exception{
@@ -261,7 +270,7 @@ public class App extends Thread {
                         System.out.println("\nInizio!");
                         System.out.println("\nSto giocando...");
                         for (int i = 0; i < rooms.size(); i++) {
-                            initializeThread(i);
+                            initializeRoom(i);
                         }
                     }
 
@@ -301,15 +310,19 @@ public class App extends Thread {
         }
     }
 
-
     /**
      * This function will initialize the two arraylist used to manage all the matches: starts and boards.
      * The two arraylist will contain n arraylist as many as there are rooms.
      *
-     * - an internal starts' arraylist will contain n flag (true or false) as many as there are the room instances.
-     *   true means: in this room i will start and false means: in this room enemy will start.
-     *
-     * - an internal boards' arraylist will contain n tic-tac-toe board as many as there are the room instances.
+     * <ul>
+     *     <li>
+     *       an internal starts' arraylist will contain n flag (true or false) as many as there are the room instances.
+     *       true means: in this room i will start and false means: in this room enemy will start.
+     *     </li>
+     *     <li>
+     *         an internal boards' arraylist will contain n tic-tac-toe board as many as there are the room instances.
+     *     </li>
+     * </ul>
      * */
     public static void initializeArrays(){
         try {
@@ -420,7 +433,7 @@ public class App extends Thread {
     }
 
 
-    /**This function increase the results variabile
+    /**This function increase the results variable
      *
      * @param board tic-tac-toe playing field
      * */
